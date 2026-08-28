@@ -23,7 +23,16 @@ android {
     }
     sourceSets {
         main {
-            java.srcDirs = ['../app/src/main/java', 'src/main/java']
+            java {
+                srcDirs = ['../app/src/main/java', 'src/main/java']
+                include 'com/glitch9/**'
+                include 'com/limelight/LimeLog.java'
+                include 'com/limelight/nvstream/**'
+                include 'com/limelight/binding/audio/**'
+                include 'com/limelight/binding/video/**'
+                include 'com/limelight/preferences/PreferenceConfiguration.java'
+                include 'com/limelight/preferences/GlPreferences.java'
+            }
             res.srcDirs = ['../app/src/main/res']
             assets.srcDirs = ['../app/src/main/assets']
             manifest.srcFile 'src/main/AndroidManifest.xml'
