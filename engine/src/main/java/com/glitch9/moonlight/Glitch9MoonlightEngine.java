@@ -170,6 +170,15 @@ public final class Glitch9MoonlightEngine {
         if (value != null) value.sendControllerInput((short) 0, (short) 1, buttons,
                 (byte) leftTrigger, (byte) rightTrigger, lx, ly, rx, ry);
     }
+    public void sendKeyboard(short virtualKey, boolean pressed, byte modifiers) {
+        NvConnection value = connection;
+        if (value != null) value.sendKeyboardInput((short) (0x8000 | virtualKey),
+                pressed ? (byte) 0x03 : (byte) 0x04, modifiers, (byte) 0);
+    }
+    public void sendText(String text) {
+        NvConnection value = connection;
+        if (value != null && text != null && !text.isEmpty()) value.sendUtf8Text(text);
+    }
 
     private static NvHTTP http(String host, int port, String clientId, Identity identity) throws IOException {
         return new NvHTTP(new ComputerDetails.AddressTuple(host, port), 0, clientId,
