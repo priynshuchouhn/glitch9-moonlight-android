@@ -3,6 +3,7 @@ package com.glitch9.moonlight;
 import android.app.Activity;
 import android.net.ConnectivityManager;
 import android.view.SurfaceHolder;
+import android.util.Log;
 
 import com.limelight.binding.audio.AndroidAudioRenderer;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -140,9 +141,15 @@ public final class Glitch9MoonlightEngine {
                 new NvConnectionListener() {
                     @Override public void stageStarting(String stage) { }
                     @Override public void stageComplete(String stage) { }
-                    @Override public void stageFailed(String stage, int portFlags, int errorCode) { listener.onFailure("desktop_unavailable"); }
+                    @Override public void stageFailed(String stage, int portFlags, int errorCode) {
+                        Log.e("Glitch9Streaming", "Moonlight stage failed: " + stage + " (error " + errorCode + ", ports " + portFlags + ")");
+                        listener.onFailure("desktop_unavailable");
+                    }
                     @Override public void connectionStarted() { listener.onStreaming(); }
-                    @Override public void connectionTerminated(int errorCode) { listener.onFailure("stream_interrupted"); }
+                    @Override public void connectionTerminated(int errorCode) {
+                        Log.e("Glitch9Streaming", "Moonlight connection terminated (error " + errorCode + ")");
+                        listener.onFailure("stream_interrupted");
+                    }
                     @Override public void connectionStatusUpdate(int connectionStatus) { }
                     @Override public void displayMessage(String message) { }
                     @Override public void displayTransientMessage(String message) { }
