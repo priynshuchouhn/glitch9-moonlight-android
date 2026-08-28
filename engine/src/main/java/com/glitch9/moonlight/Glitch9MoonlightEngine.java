@@ -49,6 +49,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 /** Reusable, UI-free Moonlight engine used by the Glitch9 Flutter host. */
 public final class Glitch9MoonlightEngine {
@@ -74,9 +75,23 @@ public final class Glitch9MoonlightEngine {
     public byte[] pair(String host, int port, String clientId, String pin, Runnable pairingRequestReady) throws Exception {
         Identity identity = Identity.create();
         NvHTTP http = http(host, port, clientId, identity);
-        pairingRequestReady.run();
         PairingManager manager = http.getPairingManager();
-        PairingManager.PairState result = manager.pair(http.getServerInfo(true), pin);
+        String serverInfo = http.getServerInfo(true);
+        AtomicReference<Throwable> relayFailure = new AtomicReference<>();
+        Thread relay = new Thread(() -> {
+            try {
+                // PairingManager opens its long-lived getservercert request below. Give that
+                // request time to reach the desktop before asking the backend to submit the PIN.
+                Thread.sleep(500);
+                pairingRequestReady.run();
+            } catch (Throwable error) {
+                relayFailure.set(error);
+            }
+        }, "Glitch9 pairing relay");
+        relay.start();
+        PairingManager.PairState result = manager.pair(serverInfo, pin);
+        relay.join();
+        if (relayFailure.get() != null) throw new IOException("pairing_rejected", relayFailure.get());
         if (result != PairingManager.PairState.PAIRED || manager.getPairedCert() == null) {
             throw new IOException(result == PairingManager.PairState.PIN_WRONG ? "pairing_rejected" : "pairing_required");
         }
